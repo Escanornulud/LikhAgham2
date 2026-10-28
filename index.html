@@ -39,6 +39,14 @@ canvas.interactive-plot{cursor:crosshair;touch-action:none}
 .cards b{font:700 17px "Trebuchet MS",Verdana,sans-serif;color:var(--acc)}
 .cards span{display:block;font-size:14px;color:var(--mut);margin-top:4px}
 .fl{width:60px;height:80px;border:2px solid var(--fg);border-radius:6px 6px 26px 26px;border-top-width:0;margin:6px 0;transition:background .2s;box-shadow:0 0 18px rgba(143,231,255,.13)}
+.titration-apparatus{width:100%;height:auto;display:block;margin:10px 0 14px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,rgba(9,15,21,.9),rgba(15,21,32,.9))}
+.titration-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0}
+.titration-actions button{min-height:42px}
+.titration-actions span{color:var(--mut);font-size:13px}
+.titration-drop{opacity:0;pointer-events:none}
+.titration-drop.falling{animation:titration-drop .45s ease-in forwards}
+@keyframes titration-drop{0%{opacity:0;transform:translateY(-8px)}25%{opacity:1}100%{opacity:0;transform:translateY(38px)}}
+@media(prefers-reduced-motion:reduce){.titration-drop.falling{animation-duration:.01ms}}
 .row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
 h3{font:700 17px "Trebuchet MS",Verdana,sans-serif;margin:18px 0 8px;color:var(--acc)}
 nav#cat a{font-weight:700}
@@ -167,7 +175,7 @@ footer{font-size:13px}
 <script>
 const $=id=>document.getElementById(id),css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const S=(id,l,a,b,v,st,u)=>`<label>${l}: <span id="${id}V" aria-hidden="true">${v}</span> ${u}<input type="range" id="${id}" aria-label="${l}${u?' ('+u+')':''}" min="${a}" max="${b}" value="${v}" step="${st}"></label>`;
-const CV_LABELS={ac:'Animated atom model showing electron shells',pg:'Graph of periodic trends by atomic number',vc:'Molecular geometry model',qc:'Reaction energy profile',tc:'Titration pH curve',gc:'Animated gas particles in a container',rc:'Animated reaction particle collisions',cc:'Calorimetry temperature curves',hcv:'Hydrocarbon boiling points by chain length',dc:'Crude oil fractions at the selected furnace temperature',fc:'Flame color for the selected metal ion',zc:'Heat transfer between two blocks',fb:'Heat, work, and internal energy chart',sc:'Animated particles in a divided container',st:'Entropy over time',t3c:'Entropy as temperature changes',nc:'Ball-and-stick structure for the generated IUPAC name',kc:'Carnot heat-engine pressure-volume cycle'};
+const CV_LABELS={ac:'Animated atom model showing electron shells',pg:'Graph of periodic trends by atomic number',vc:'Molecular geometry model',qc:'Reaction energy profile',qv:'Reaction visualization showing reactants, bonds changing, and products',tc:'Titration pH curve',gc:'Animated gas particles in a container',rc:'Animated reaction particle collisions',cc:'Calorimetry temperature curves',hcv:'Hydrocarbon boiling points by chain length',dc:'Crude oil fractions at the selected furnace temperature',fc:'Flame color for the selected metal ion',zc:'Heat transfer between two blocks',fb:'Heat, work, and internal energy chart',sc:'Animated particles in a divided container',st:'Entropy over time',t3c:'Entropy as temperature changes',nc:'Ball-and-stick structure for the generated IUPAC name',kc:'Carnot heat-engine pressure-volume cycle'};
 const cvs=(id)=>`<canvas id="${id}" width="640" height="320" role="img" aria-label="${CV_LABELS[id]||'Interactive scientific visualization'}"></canvas>`;
 const G={org:'Organic chemistry',ino:'Inorganic chemistry',thm:'Thermodynamics'};
 const L=[['home','Start'],['hc','Hydrocarbons','org'],['dist','Crude oil distillation','org'],['rx','Organic reactions','org'],['fg','Functional groups','org'],['iso','Isomers','org'],['nm','IUPAC naming','org'],['atom','Atomic structure','ino'],['pt','Periodic table','ino'],['vsepr','VSEPR shapes','ino'],['tit','Titration','ino'],['flame','Flame tests','ino'],['rate','Reaction rates','ino'],['z0','Zeroth law','thm'],['l1','First law','thm'],['l2','Second law','thm'],['l3','Third law','thm'],['gas','Gas laws','thm'],['cal','Calorimetry','thm'],['carnot','Heat engine','thm']];
@@ -183,8 +191,8 @@ vsepr:`<h2>VSEPR theory: molecular shapes</h2><div class="box why"><b>Why it's h
 <div class="box"><div class="ctl">${S('vB','Bonding pairs',2,6,4,1,'')}${S('vL','Lone pairs',0,3,0,1,'')}</div><div class="out" id="vr"></div>${cvs('vc')}</div>
 <div class="box"><b>The idea:</b> electron pairs around a central atom (A) repel each other and spread as far apart as possible. Lone pairs (orange) take more room than bonding pairs (X atoms), squeezing the bond angles: CH₄ is 109.5°, NH₃ about 107°, H₂O about 104.5°. Try 4 bonding pairs, then add lone pairs one at a time.</div>`,
 rx:`<h2>Organic reactions</h2><div class="box why"><b>Why it's hard in class:</b> real versions need bromine, chlorine gas, strong acids or open flames, and the energy changes can't be seen.</div>
-<div class="box"><div class="ctl"><label>Reaction<br><select id="qS"></select></label>${S('qP','Reaction progress',0,100,0,1,'%')}</div><div class="out" id="qr"></div><p id="qb"></p>${cvs('qc')}</div>
-<div class="box">The curve is an energy profile. Bonds break first (energy in, the hump), then new bonds form (energy out). ΔH = energy to break bonds − energy released forming bonds, using average bond energies, so values are approximate. Activation energies are illustrative.</div>`,
+<div class="box"><div class="ctl"><label>Reaction<br><select id="qS"></select></label>${S('qP','Reaction progress',0,100,0,1,'%')}</div><div class="out" id="qr"></div><p id="qb"></p><h3>What changes in the molecules?</h3><canvas id="qv" width="640" height="240" role="img" aria-label="Reaction visualization showing reactants, bonds changing, and products"></canvas>${cvs('qc')}</div>
+<div class="box">Follow the reaction progress to compare the reactant and product molecules and see which bonds are broken or formed. The energy profile shows why bonds break first (energy in, the hump), then new bonds form (energy out). ΔH = energy to break bonds − energy released forming bonds, using average bond energies, so values are approximate. Activation energies are illustrative.</div>`,
 fg:`<h2>Functional groups</h2><div class="box why"><b>Why it's hard in class:</b> showing each group means handling many chemicals, some toxic or smelly, and model kits are costly.</div>
 <div class="box"><div class="ctl"><label>Functional group<br><select id="uS"></select></label></div><div class="out" id="ur"></div><p id="un"></p><canvas id="uc" width="640" height="240" role="img" aria-label="Animated ball-and-stick model of the selected functional group"></canvas></div>
 <div class="box">Ball-and-stick key: gray carbon, red oxygen, blue nitrogen, green chlorine. Hydrogens are not drawn. R means the rest of the carbon chain.</div>`,
@@ -196,9 +204,31 @@ nm:`<h2>IUPAC naming</h2><div class="box why"><b>Why it's hard in class:</b> nam
 <div class="out" id="nr"></div><p id="nl" style="white-space:pre-line"></p>${cvs('nc')}</div>
 <div class="box"><b>The rules:</b> find the longest chain, name the main group with a suffix, number from the end that gives the main group the lowest number, then add substituents as prefixes. Try moving the group to the right end: the numbering flips.</div>`,
 tit:`<h2>Acid-base titration</h2><div class="box why"><b>Why it's hard in class:</b> it needs burettes, standardized NaOH, indicators, and careful handling of caustic liquids.</div>
-<div class="box"><div class="ctl"><label>Flask contents: 25 mL of 0.1 M acid<br><select id="acid"><option value="s">Strong acid (HCl)</option><option value="w">Weak acid (acetic)</option></select></label>${S('vol','0.1 M NaOH added',0,50,0,0.5,'mL')}</div>
-<div class="row"><div class="fl" id="fl" title="Flask with phenolphthalein"></div><div class="out" id="tr"></div></div>${cvs('tc')}</div>
-<div class="box">Phenolphthalein turns pink above pH 8.2. Watch the pH jump near 25 mL, the equivalence point. The weak acid starts higher, rises gently through a buffer region, and ends at a pH above 7.</div>`,
+<div class="box"><div class="ctl"><label>Acid in the flask: 25 mL at 0.1 M<br><select id="acid"><option value="s">Strong acid (HCl)</option><option value="w">Weak acid (acetic acid)</option></select></label>${S('vol','NaOH delivered',0,50,0,0.05,'mL')}</div>
+<svg class="titration-apparatus" id="titrationApp" viewBox="0 0 640 380" role="img" aria-label="Interactive titration apparatus with a burette stopcock above the flask opening">
+<defs><clipPath id="flaskClip"><path d="M383 253 L383 278 L354 328 Q351 340 367 344 L439 344 Q455 340 452 328 L423 278 L423 253 Z"/></clipPath></defs>
+<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+<path d="M410 18 V222 M386 18 H434 M396 18 V205 Q396 222 410 222 Q424 222 424 205 V18" stroke="#d7e1dc" stroke-width="3"/>
+<path d="M436 24 H478 V32 H436" stroke="#d7e1dc" stroke-width="3"/>
+<path d="M410 222 V224 M400 224 H420 V239 H400 Z M420 231 H438 M410 239 V263" stroke="#d7e1dc" stroke-width="3"/>
+<path d="M395 251 V278 M411 251 V278 M395 251 H411" stroke="#d7e1dc" stroke-width="4"/>
+<path d="M383 253 L383 278 L354 328 Q351 340 367 344 H439 Q455 340 452 328 L423 278 V253" stroke="#d7e1dc" stroke-width="4"/>
+<path d="M260 28 V350 M235 350 H285 M260 60 H386 M380 48 H396 M380 72 H396" stroke="#b5bcb6" stroke-width="3"/>
+</g>
+<rect id="buretteLiquid" x="399" y="21" width="22" height="184" rx="8" fill="#b9e8ff" opacity=".8"/>
+<g id="buretteMarks" fill="#e1e9e3" font-family="sans-serif" font-size="10"></g>
+<rect id="flaskLiquid" x="354" y="326" width="100" height="18" clip-path="url(#flaskClip)" fill="#ff69b4" opacity="0"/>
+<path d="M395 39 H424" stroke="#fff" stroke-width="2" opacity=".65"/>
+<circle class="titration-drop" id="titrationDrop" cx="410" cy="263" r="5" fill="#b9e8ff"/>
+<g fill="#e3e9e4" font-family="sans-serif" text-anchor="middle">
+<text x="410" y="13" font-size="12" font-weight="700">0.1 M NaOH</text>
+<text x="408" y="367" font-size="12">25 mL acid + indicator</text>
+</g>
+<text x="442" y="228" fill="#a7b0a9" font-family="sans-serif" font-size="11">stopcock</text>
+</svg>
+<div class="titration-actions"><button type="button" id="tDrop">Add drop (0.05 mL)</button><button type="button" id="tAdd1">Add 1.00 mL</button><button type="button" id="tReset">Reset titration</button></div>
+<div class="out" id="tr" role="status" aria-live="polite"></div>${cvs('tc')}</div>
+<div class="box">The flask contains acid and phenolphthalein; the burette adds sodium hydroxide. The simulation marks the equivalence point at 25 mL with a pale-pink endpoint color. As more NaOH is added past equivalence, the pink deepens and shifts toward violet while the pH curve continues to show the calculated pH. The weak-acid equivalence point is above pH 7.</div>`,
 gas:`<h2>Gas laws</h2><div class="box why"><b>Why it's hard in class:</b> you need a sealed gas syringe, a pressure sensor, and water baths at several temperatures.</div>
 <div class="box"><div class="ctl">${S('gT','Temperature',200,500,300,10,'K')}${S('gV','Volume',1,5,3,0.1,'L')}</div>
 <div class="out" id="gr"></div>${cvs('gc')}</div>
@@ -257,18 +287,28 @@ canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);
 function pHat(V,weak){const Vt=25+V,acidM=0.10,baseM=0.10,eq=25,Ka=1.8e-5;
 if(weak){
   const molesAcid=acidM*25/1000,molesBase=baseM*V/1000,pKa=-Math.log10(Ka);
+  if(V===0){return -0.5*Math.log10(Ka*acidM);}
   if(V<eq){const acidLeft=molesAcid-molesBase,baseForm=molesBase;return acidLeft>0 ? pKa + Math.log10(baseForm/acidLeft) : 2.7;}
-  if(Math.abs(V-eq)<0.1){return 8.72;}
+  if(Math.abs(V-eq)<1e-9){return 8.72;}
   const excessOH=baseM*(V-eq)/1000;return 14 + Math.log10(excessOH / (Vt/1000));
 }
 const molesAcid=acidM*25/1000,molesBase=baseM*V/1000;
 if(V<eq){const H=Math.max(1e-12, (molesAcid-molesBase)/(Vt/1000)); return -Math.log10(H);}
-if(Math.abs(V-eq)<0.1){ return 7; }
+if(Math.abs(V-eq)<1e-9){ return 7; }
 const OH=Math.max(1e-12,(molesBase-molesAcid)/(Vt/1000)); return 14 + Math.log10(OH);}
 function tit(){const weak=$('acid').value==='w',V=+$('vol').value,c=C('tc'),m=ax(c,0,50,0,14,'NaOH added (mL)','pH'),p=pHat(V,weak);
-ln(c,m,v=>pHat(v,weak),0,50,css('--acc'),200);dot(c,m,V,p,css('--hot'));
-$('tr').textContent='pH = '+p.toFixed(2)+` (${weak?'weak acid titration':'strong acid titration'}${Math.abs(V-25)<0.5 ? ', equivalence point' : ''})`;
-$('fl').style.background=p>8.2?`rgba(236,72,153,${Math.min(1,(p-8.2)/1.5)*.8})`:'transparent'}
+ln(c,m,v=>pHat(v,weak),0,50,css('--acc'),1000);dot(c,m,V,p,css('--hot'));
+$('tr').textContent=`${V.toFixed(2)} mL NaOH added · pH ${p.toFixed(2)} · ${weak?'weak acid':'strong acid'}${Math.abs(V-25)<1e-9?', equivalence point · indicator pale pink':V>25?` · indicator ${V-25<.1?'pale pink':V-25<.35?'pink':V-25<1?'violet':'deep violet'}`:''}${V>25?` · Overshoot: ${(V-25).toFixed(2)} mL past equivalence`:''}`;
+const buretteTop=21+V*3.68,buretteHeight=Math.max(0,184-V*3.68),liquidY=340-(25+V)*.55,flaskLiquid=$('flaskLiquid'),overshoot=Math.max(0,V-25),colorFraction=Math.max(0,Math.min(1,overshoot/1.5)),startColor=[255,226,239],endColor=[82,24,130],indicatorColor='#'+startColor.map((n,i)=>Math.round(n+(endColor[i]-n)*colorFraction).toString(16).padStart(2,'0')).join('');
+$('buretteLiquid').setAttribute('y',buretteTop);$('buretteLiquid').setAttribute('height',buretteHeight);
+flaskLiquid.setAttribute('y',liquidY);flaskLiquid.setAttribute('height',344-liquidY);flaskLiquid.setAttribute('fill',indicatorColor);flaskLiquid.setAttribute('opacity',V<25?0:.95);
+$('tDrop').textContent='Add drop (0.05 mL)';
+$('tDrop').disabled=V>=50;$('tAdd1').disabled=V>=50;
+}
+function titDrop(){const input=$('vol'),V=+input.value;if(V>=50)return;const dose=.05;
+input.value=String(Math.min(50,Math.round((V+dose)*100)/100));input.dispatchEvent(new Event('input',{bubbles:true}));
+const drop=$('titrationDrop');drop.classList.remove('falling');void drop.getBoundingClientRect();drop.classList.add('falling')}
+function titAdd(amount){const input=$('vol');input.value=String(Math.min(50,Math.round((+input.value+amount)*100)/100));input.dispatchEvent(new Event('input',{bubbles:true}))}
 /* Gas */
 let gp=[],rp=[];
 for(let i=0;i<60;i++)gp.push({x:Math.random(),y:Math.random(),a:Math.random()*6.28});
@@ -418,13 +458,58 @@ else{c.fillStyle=css('--acc');c.beginPath();c.arc(o.x,o.y,15*o.p,0,7);c.fill();c
 const RX=[['Combustion of methane','Oxidation','CH₄ + 2 O₂ → CO₂ + 2 H₂O','a spark or flame','a blue flame and a large heat release',[['C–H',413,4],['O=O',498,2]],[['C=O in CO₂',799,2],['O–H',463,4]],-890,200],
 ['Bromine adding to ethene','Addition','CH₂=CH₂ + Br₂ → CH₂Br–CH₂Br','room temperature','orange bromine water turning colorless',[['C=C',614,1],['Br–Br',193,1]],[['C–C',347,1],['C–Br',285,2]],-120,60],
 ['Methane and chlorine','Free-radical substitution','CH₄ + Cl₂ → CH₃Cl + HCl','ultraviolet light','green chlorine fading and acidic HCl fumes',[['C–H',413,1],['Cl–Cl',243,1]],[['C–Cl',339,1],['H–Cl',432,1]],-90,100],
-['Esterification','Condensation','CH₃COOH + C₂H₅OH ⇌ CH₃COOC₂H₅ + H₂O','warm with concentrated H₂SO₄ catalyst','a sweet, fruity smell',[['O–H (acid)',463,1],['C–O (alcohol)',358,1]],[['C–O (ester)',358,1],['O–H (water)',463,1]],-6,90],
+['Esterification','Condensation','CH₃COOH + C₂H₅OH ⇌ CH₃COOC₂H₅ + H₂O','warm with concentrated H₂SO₄ catalyst','a sweet, fruity smell',[['C–O (acid)',358,1],['O–H (alcohol)',463,1]],[['C–O (ester)',358,1],['O–H (water)',463,1]],-6,90],
 ['Dehydration of ethanol','Elimination','C₂H₅OH → CH₂=CH₂ + H₂O','heat with concentrated H₂SO₄ or hot alumina','a gas that decolorizes bromine water',[['C–O',358,1],['C–H',413,1],['C–C',347,1]],[['C=C',614,1],['O–H',463,1]],+45,150]];
+function rxVisual(){
+const c=C('qv');if(!c)return;
+const r=RX[+$('qS').value],p=+$('qP').value/100;
+c.clearRect(0,0,640,240);
+const colors={C:'#6b7280',H:'#f8fafc',O:'#ef4444',N:'#3b82f6',F:'#22d3ee',Cl:'#22c55e',Br:'#b45309'};
+const panels=[{x:10,w:164,title:'REACTANTS',active:p<.3},{x:186,w:268,title:'BONDS CHANGE',active:p>=.3&&p<.55},{x:466,w:164,title:'PRODUCTS',active:p>=.55}];
+c.font='bold 12px sans-serif';c.textAlign='center';c.textBaseline='middle';
+panels.forEach(panel=>{
+c.fillStyle=panel.active?'rgba(30,215,96,.12)':'rgba(255,255,255,.025)';c.fillRect(panel.x,8,panel.w,204);
+c.strokeStyle=panel.active?css('--acc'):css('--line');c.lineWidth=panel.active?2:1;c.strokeRect(panel.x,8,panel.w,204);
+c.fillStyle=panel.active?css('--acc'):css('--mut');c.fillText(panel.title,panel.x+panel.w/2,25);
+});
+const equation=r[2].split(/\s*(?:→|⇌)\s*/),drawSpecies=(text,x,w,alpha)=>{
+const species=text.split(/\s*\+\s*/),lineHeight=species.length>3?31:42;
+c.font='bold 15px sans-serif';c.textAlign='center';c.fillStyle=css('--fg');c.globalAlpha=alpha;
+species.forEach((s,i)=>c.fillText(s.replace(/\d+/g,n=>n.replace(/\d/g,d=>'₀₁₂₃₄₅₆₇₈₉'[+d])),x+w/2,68+i*lineHeight,w-12))
+c.globalAlpha=1;
+};
+drawSpecies(equation[0],10,164,1-.75*p);drawSpecies(equation[1]||'',466,164,.25+.75*p);
+const transition=Math.max(0,Math.min(1,(p-.25)/.35));
+const drawBonds=(bonds,title,y,color,dash,breaking)=>{
+c.textAlign='left';c.font='bold 11px sans-serif';c.fillStyle=color;c.fillText(title,198,y);
+bonds.forEach(([label,,count],i)=>{
+const rowY=y+14+i*22,match=label.match(/^(Cl|Br|C|O|H|N|F)([–-]|=|≡)(Cl|Br|C|O|H|N|F)/);
+if(!match){c.fillStyle=css('--fg');c.font='12px sans-serif';c.fillText(label,200,rowY+5);return}
+const [,left,bond,right]=match,x1=208,x2=248;
+const amount=breaking?1-transition:.15+.85*transition;
+c.globalAlpha=amount;
+c.setLineDash(dash&&transition>.1?[3,3]:[]);
+c.strokeStyle=breaking?(transition>.1?color:css('--mut')):color;c.lineWidth=2;
+const order=bond==='≡'?3:bond==='='?2:1;
+for(let k=0;k<order;k++){const offset=(k-(order-1)/2)*4;c.beginPath();c.moveTo(x1+11,rowY+offset);c.lineTo(x2-11,rowY+offset);c.stroke()}
+c.setLineDash([]);
+[[left,x1],[right,x2]].forEach(([atom,x])=>{c.fillStyle=colors[atom]||css('--mut');c.beginPath();c.arc(x,rowY,10,0,Math.PI*2);c.fill();c.fillStyle=atom==='H'?'#111':'#fff';c.textAlign='center';c.font='bold 9px sans-serif';c.fillText(atom,x,rowY+1)});
+c.textAlign='left';c.fillStyle=css('--fg');c.font='11px sans-serif';c.fillText(`${label}  ×${count}`,266,rowY+1,180)
+c.globalAlpha=1;
+});
+};
+drawBonds(r[5],'BREAK',43,'#ff6b78',true,true);
+drawBonds(r[6],'FORM',132,'#45e39a',false,false);
+c.textAlign='center';c.font='bold 13px sans-serif';c.fillStyle=css('--mut');c.fillText('→',176,111);c.fillText('→',458,111);
+const markerX=18+p*604;c.fillStyle=css('--hot');c.beginPath();c.arc(markerX,226,5,0,Math.PI*2);c.fill();
+c.strokeStyle=css('--line');c.lineWidth=1;c.beginPath();c.moveTo(18,226);c.lineTo(622,226);c.stroke();
+}
 function rxn(){const r=RX[+$('qS').value],p=+$('qP').value/100,t=a=>a.reduce((u,[,e,n])=>u+e*n,0),f=a=>a.map(([l,e,n])=>`${n} × ${l} (${e})`).join(' + '),dH=r[7],Ea=r[8],
 E=x=>dH*(3*x*x-2*x**3)+Ea*Math.exp(-(((x-.4)/.17)**2)),c=C('qc'),lo=Math.min(0,dH)-80,hi=Math.max(Ea+60,Math.max(0,dH)*.4+90),m=ax(c,0,100,lo,hi,'Reaction progress (%)','Energy (kJ/mol)');
 ln(c,m,x=>E(x/100),0,100,css('--acc'),100);dot(c,m,p*100,E(p),css('--hot'));
 $('qr').textContent=r[2];
-$('qb').textContent=`Stage: ${p<.3?'bond breaking and activation energy are being supplied':p<.55?'the transition state is reached': 'new bonds form and the system settles to products'}. Type: ${r[1]}. Conditions: ${r[3]}. You would see ${r[4]}. Broken: ${f(r[5])} = ${t(r[5])} kJ. Formed: ${f(r[6])} = ${t(r[6])} kJ. ΔH ≈ ${dH>0?'+':''}${dH} kJ/mol (${dH<-50?'strongly exothermic':dH<-5?'exothermic':dH>50?'strongly endothermic':'near thermoneutral'}), with an activation energy of about ${Ea} kJ/mol.`}
+$('qb').textContent=`Stage: ${p<.3?'bond breaking and activation energy are being supplied':p<.55?'the transition state is reached': 'new bonds form and the system settles to products'}. Type: ${r[1]}. Conditions: ${r[3]}. You would see ${r[4]}. Broken: ${f(r[5])} = ${t(r[5])} kJ. Formed: ${f(r[6])} = ${t(r[6])} kJ. ΔH ≈ ${dH>0?'+':''}${dH} kJ/mol (${dH<-50?'strongly exothermic':dH<-5?'exothermic':dH>50?'strongly endothermic':'near thermoneutral'}), with an activation energy of about ${Ea} kJ/mol.`;
+rxVisual()}
 const TV=[[.87,.87,.87],[.87,-.87,-.87],[-.87,.87,-.87],[-.87,-.87,.87]],AC={C:'#6b7280',H:'#f8fafc',O:'#ef4444',F:'#22d3ee',Cl:'#22c55e',Br:'#b45309',N:'#3b82f6'},AR={C:15,H:9,O:14,F:12,Cl:16,Br:18,N:14},
 mZ=(e,o)=>({a:e.map((x,i)=>[x,(i-(e.length-1)/2)*1.23,i%2?.43:-.43,0]),b:e.slice(1).map((_,i)=>[i,i+1,o?o[i]:1])}),
 mY=x=>({a:[['C',0,0,0],['C',...TV[0]],['C',...TV[1]],[x,...TV[2]]],b:[[0,1,1],[0,2,1],[0,3,1]]}),
@@ -506,6 +591,7 @@ document.querySelector('#periodicTable').innerHTML=PT_ELEMENTS.map(([symbol,name
 document.addEventListener('click',e=>{const tile=e.target.closest('#periodicTable .element-tile');if(tile)selectPTElement(+tile.dataset.z,false)});
 document.querySelector('#periodicTable').addEventListener('keydown',e=>{const tile=e.target.closest('.element-tile');if(!tile)return;let z=+tile.dataset.z;if(e.key==='Home')z=1;else if(e.key==='End')z=118;else if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))z=movePTFocus(z,e.key);else return;e.preventDefault();selectPTElement(z,true)});
 $('qS').innerHTML=RX.map((r,i)=>`<option value="${i}">${r[0]}</option>`).join('');$('uS').innerHTML=FG.map((f,i)=>`<option value="${i}">${f[0]}</option>`).join('');$('iS').innerHTML=IS.map((r,i)=>`<option value="${i}">${r[0]}</option>`).join('');
+$('buretteMarks').innerHTML=Array.from({length:11},(_,i)=>{const y=22+i*18.2;return`<path d="M424 ${y}h${i%2===0?13:7}" stroke="#e1e9e3" stroke-width="1"/><text x="442" y="${y+3}">${i*5}</text>`}).join('');
 const LT=['LibreTexts Chemistry','https://chem.libretexts.org/'],KA=['Khan Academy Chemistry','https://www.khanacademy.org/science/chemistry'],RS=['Royal Society of Chemistry education resources','https://edu.rsc.org/'],PH=(t,u)=>['PhET: '+t,'https://phet.colorado.edu/en/simulations/'+u],EF=PH('Energy Forms and Changes','energy-forms-and-changes');
 const X={rx:{h:'Light a candle (with an adult). Wax burning in air is combustion: notice the heat, the flame, and soot if air is short.',l:[PH('Reactants, Products and Leftovers','reactants-products-and-leftovers'),LT,KA],r:['fg','dist']},
 fg:{h:'With an adult, smell vinegar (carboxylic acid) and a drop of vanilla extract. Different groups give different smells and behavior.',l:[RS,LT,KA],r:['rx','nm']},
@@ -524,13 +610,13 @@ gas:{h:'Put a partly inflated balloon in the freezer, then in warm water, and co
 cal:{h:'Mix warm and cold water in foam cups with a thermometer and compare the result with the calculation.',l:[EF,KA],r:['l1']},
 carnot:{l:[KA,LT],r:['l2']}};
 document.querySelectorAll('section').forEach(e=>{const x=X[e.id.slice(2)];if(!x)return;const learn=safeLinkArray(x.l).filter(l=>Array.isArray(l)&&l[1]).map(l=>`<a href="${l[1]}" target="_blank" rel="noopener">${l[0]}</a>`).join(' · '),related=safeLinkArray(x.r).filter(r=>L.some(l=>l[0]===r)).map(r=>`<a href="#${r}">${safeLessonName(r)}</a>`).join(' · ');e.insertAdjacentHTML('beforeend',`<div class="box">${x.h?`<p><b>Try it at home:</b> ${x.h}</p>`:''}<p><b>Learn more:</b> ${learn||'No links available yet.'}</p><p><b>Related lessons:</b> ${related||'No related lessons yet.'}</p></div>`)})
- const GUIDE={hc:['Choose a hydrocarbon family.','Change the carbon count; watch the structure and curve.','Compare boiling points at the same chain length.'],dist:['Set a furnace temperature with the slider.','Watch vapor height and the highlighted fraction outlet.','Raise the temperature to compare heavier fractions; this is an illustrative model.'],rx:['Choose a reaction.','Move progress with the slider or drag the energy curve.','Compare the energy profile with the reaction and observations.'],fg:['Choose a functional group.','Watch its model rotate and read the example and suffix.','Switch groups to compare their structures.'],iso:['Choose an isomer pair.','Pause auto-rotation or adjust the rotation slider.','Compare formula, connectivity, and 3D arrangement.'],nm:['Set chain length and choose a main group.','Move the group or add a substituent.','Read the generated name and compare it with the drawing.'],atom:['Change the proton count to choose an element.','Change neutrons to make an isotope.','Watch the shell model and compare the electron configuration.'],pt:['Choose a property to graph.','Select an element on the table, slider, or graph.','Compare its value with the trend across the table.'],vsepr:['Set bonding pairs and lone pairs.','Watch the molecule rotate.','Compare the displayed shape and bond angles.'],tit:['Choose strong or weak acid.','Add base with the slider or drag across the curve.','Watch pH and the flask color, especially near 25 mL.'],flame:['Choose a metal ion.','Watch the flame color change.','Compare the observed color with the emission description.'],rate:['Set temperature and activation energy.','Toggle the catalyst to lower the energy barrier.','Watch collisions and press Restart to run a fresh trial.'],z0:['Set the starting temperatures of A and B.','Press Bring A and B together.','Watch their temperatures converge toward equilibrium.'],l1:['Set heat added, Q, and work done, W.','Watch the signed energy bars update.','Compare internal-energy change with the final temperature.'],l2:['Choose the number of particles and press Reset.','Remove the partition to start mixing.','Watch the particle distribution and entropy change.'],l3:['Set a temperature in kelvin.','Watch the vibration illustration.','Follow the entropy point on the temperature curve.'],gas:['Adjust temperature and volume.','Watch particle speed and container width respond.','Compare the pressure readout as you change one variable at a time.'],cal:['Choose a metal and set both masses and start temperatures.','Watch the metal and water curves approach equilibrium.','Compare the final temperature and transferred heat.'],carnot:['Set hot and cold reservoir temperatures.','Watch the pressure-volume cycle reshape.','Compare the ideal efficiency as the temperature gap changes.']};
- document.querySelectorAll('#m > section').forEach(section=>{const steps=GUIDE[section.id.slice(2)];if(!steps)return;const guide=document.createElement('div');guide.className='simulation-guide';guide.innerHTML=`<strong>How to use</strong><ol>${steps.map(step=>`<li>${step}</li>`).join('')}</ol>`;section.querySelector('h2').after(guide);
+ const GUIDE={hc:['Choose a hydrocarbon family.','Change the carbon count; watch the structure and curve.','Compare boiling points at the same chain length.'],dist:['Set a furnace temperature with the slider.','Watch vapor height and the highlighted fraction outlet.','Raise the temperature to compare heavier fractions; this is an illustrative model.'],rx:['Choose a reaction.','Move progress with the slider or drag the energy curve.','Watch reactant bonds fade as product bonds form, then compare the energy profile and observations.'],fg:['Choose a functional group.','Watch its model rotate and read the example and suffix.','Switch groups to compare their structures.'],iso:['Choose an isomer pair.','Pause auto-rotation or adjust the rotation slider.','Compare formula, connectivity, and 3D arrangement.'],nm:['Set chain length and choose a main group.','Move the group or add a substituent.','Read the generated name and compare it with the drawing.'],atom:['Change the proton count to choose an element.','Change neutrons to make an isotope.','Watch the shell model and compare the electron configuration.'],pt:['Choose a property to graph.','Select an element on the table, slider, or graph.','Compare its value with the trend across the table.'],vsepr:['Set bonding pairs and lone pairs.','Watch the molecule rotate.','Compare the displayed shape and bond angles.'], tit:['Choose the strong or weak acid in the flask.','Add drops and compare the burette reading, endpoint color, and volume past equivalence.'],flame:['Choose a metal ion.','Watch the flame color change.','Compare the observed color with the emission description.'],rate:['Set temperature and activation energy.','Toggle the catalyst to lower the energy barrier.','Watch collisions and press Restart to run a fresh trial.'],z0:['Set the starting temperatures of A and B.','Press Bring A and B together.','Watch their temperatures converge toward equilibrium.'],l1:['Set heat added, Q, and work done, W.','Watch the signed energy bars update.','Compare internal-energy change with the final temperature.'],l2:['Choose the number of particles and press Reset.','Remove the partition to start mixing.','Watch the particle distribution and entropy change.'],l3:['Set a temperature in kelvin.','Watch the vibration illustration.','Follow the entropy point on the temperature curve.'],gas:['Adjust temperature and volume.','Watch particle speed and container width respond.','Compare the pressure readout as you change one variable at a time.'],cal:['Choose a metal and set both masses and start temperatures.','Watch the metal and water curves approach equilibrium.','Compare the final temperature and transferred heat.'],carnot:['Set hot and cold reservoir temperatures.','Watch the pressure-volume cycle reshape.','Compare the ideal efficiency as the temperature gap changes.']}; document.querySelectorAll('#m > section').forEach(section=>{const steps=GUIDE[section.id.slice(2)];if(!steps)return;const guide=document.createElement('div');guide.className='simulation-guide';guide.innerHTML=`<strong>How to use</strong><ol>${steps.map(step=>`<li>${step}</li>`).join('')}</ol>`;section.querySelector('h2').after(guide);
  const boxes=[...section.querySelectorAll(':scope > .box')],activity=boxes.find(box=>box.querySelector('.ctl, canvas'));
  boxes.forEach(box=>{if(box===activity)return;const why=box.classList.contains('why'),summary=why?'Why this model?':box.querySelector('a')?'Explore further':'Science notes',details=document.createElement('details');details.className=why?'folded-note why':'folded-note';details.innerHTML=`<summary>${summary}</summary><div class="folded-content">${box.innerHTML}</div>`;box.replaceWith(details)})});
  $('pick').innerHTML='<option value="home">Start page</option>'+Object.keys(G).map(g=>`<optgroup label="${G[g]}">`+L.filter(l=>l[2]==g).map(l=>`<option value="${l[0]}">${l[1]}</option>`).join('')+'</optgroup>').join('');
 $('pick').onchange=e=>{location.hash=e.target.value};
 $('zGo').onclick=()=>{z.on=true};$('sGo').onclick=()=>{sOpen=true};$('sRe').onclick=sInit;
+$('tDrop').onclick=titDrop;$('tAdd1').onclick=()=>titAdd(1);$('tReset').onclick=()=>{const input=$('vol');input.value='0';input.dispatchEvent(new Event('input',{bubbles:true}))};
 $('fs').innerHTML=FL.map((f,i)=>`<option value="${i}">${f[0]}</option>`).join('');
 $('cat').innerHTML='<a href="#home" data-g="home">Start</a>'+Object.keys(G).map(g=>`<a href="#${L.find(l=>l[2]==g)[0]}" data-g="${g}">${G[g]}</a>`).join('');
 function show(){const k=(location.hash||'#home').slice(1);cur=sec[k]?k:'home';const g=L.find(l=>l[0]==cur)[2]||'home';
@@ -539,7 +625,7 @@ document.querySelectorAll('#cat a').forEach(a=>a.classList.toggle('on',a.dataset
 $('nav').innerHTML=g==='home'?'':L.filter(l=>l[2]==g).map(l=>`<a href="#${l[0]}" class="${l[0]===cur?'on':''}">${l[1]}</a>`).join('');
 $('pick').value=cur;const activeLesson=L.find(l=>l[0]===cur);$('active-title').textContent=activeLesson?activeLesson[1]:'Start';$('active-subtitle').textContent=G[activeLesson?.[2]]||'Simulation library';({hc,dist,flame,tit,cal,carnot,rx:rxn,fg:fgp,iso:isp,nm:nmg,atom:atm,pt:ptb,vsepr:vsp,z0:zInit,l1:fst,l2:sInit,l3:thd})[cur]?.();window.scrollTo(0,0)}
 document.addEventListener('input',e=>{const o=$(e.target.id+'V');if(o)o.textContent=e.target.value;({qS:rxn,qP:rxn,uS:fgp,iS:isp,nN:nmg,nG:nmg,nP:nmg,nS:nmg,nQ:nmg,aZ:atm,aN:atm,pZ:ptb,pP:ptb,vB:vsp,vL:vsp,zA:zInit,zB:zInit,fQ:fst,fW:fst,sN:sInit,tT:thd,hf:hc,hn:hc,dT:dist,fs:flame,acid:tit,vol:tit,cm:cal,cM:cal,cT:cal,cw:cal,cW:cal,kH:carnot,kC:carnot})[e.target.id]?.()});
-bindPlotRange('hcv','hn',2,10,1);bindPlotRange('qc','qP',0,100,1);bindPlotRange('tc','vol',0,50,.5);bindPlotRange('pg','pZ',1,118,1);bindPlotRange('t3c','tT',0,300,5);
+bindPlotRange('hcv','hn',2,10,1);bindPlotRange('qc','qP',0,100,1);bindPlotRange('tc','vol',0,50,.05);bindPlotRange('pg','pZ',1,118,1);bindPlotRange('t3c','tT',0,300,5);
 $('rR').onclick=rReset;rReset();
 window.addEventListener('hashchange',show);
 let resizeFrame=0;window.addEventListener('resize',()=>{if(resizeFrame)return;resizeFrame=requestAnimationFrame(()=>{resizeFrame=0;({hc,dist,flame,tit,cal,carnot,rx:rxn,fg:fgStep,iso:isoStep,nm:nmg,atom:atmStep,pt:ptb,vsepr:vStep,z0:zStep,l1:fst,l2:sStep,l3:thd,gas:gasStep,rate:rateStep})[cur]?.()})});
